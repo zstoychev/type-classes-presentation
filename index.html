@@ -1,49 +1,881 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+        <title>Type Classes</title>
 
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/black.css">
+        <link rel="stylesheet" href="css/reactive.css">
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+        <!-- Theme used for syntax highlighting of code -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h2>Type Classses</h2>
+                </section>
 
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.js"></script>
+                <section>
+                    <h2>За мен</h2>
+                    <p>Здравко Стойчев</p>
+                    <p>
+                        <img src="images/sofia-university.png" alt="" class="ref-image" style="background: white; border-radius: 15px" height="125" />
+                    </p>
+                    <p><img src="images/ot-logo.svg" alt="" class="ref-image" style="background: white; border-radius: 15px; padding: 5px" /></p>
+                    <ul>
+                        <li><a href="https://github.com/zstoychev">github.com/zstoychev</a></li>
+                        <li><a href="https://twitter.com/ZdravkoStoychev">twitter.com/ZdravkoStoychev</a></li>
+                    </ul>
+                </section>
 
-		<script>
-			// More info about config & dependencies:
-			// - https://github.com/hakimel/reveal.js#configuration
-			// - https://github.com/hakimel/reveal.js#dependencies
-			Reveal.initialize({
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/notes/notes.js', async: true },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
-				]
-			});
-		</script>
-	</body>
+                <section>
+                    <h2>Теми около реактивността</h2>
+                    <ul>
+                        <li>Функционално програмиране и абстракции</li>
+                        <li>Разпределени системи</li>
+                        <li>Конкурентност и конкурентни модели</li>
+                        <li>Управление на събития</li>
+                        <li>Асинхронност, messaging технологии и потоци</li>
+                        <li>Устойчивост и толерантност към грешки</li>
+                        <li>Domain-Driven Design</li>
+                        <li>Консистентност и подходи за съхранение на данни</li>
+                        <li>Дизайн и архитектура на съвременни системи</li>
+                        <li>...</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Прояви на времето</h2>
+
+                    <ul>
+                        <li>външни асинхронни събития</li>
+                        <li>императивен поток</li>
+                        <li>други (ред на регистрация на observer-и, взаимодействие между нишки, ...)</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Прояви на времето</h2>
+
+                    <ul>
+                        <li>външни асинхронни събития</li>
+                        <li class="distinctive">императивен поток</li>
+                        <li class="distinctive">други (ред на регистрация на observer-и, взаимодействие между нишки, ...)</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <p>Функционално програмиране и композитност</p>
+                </section>
+
+                <section>
+                    <h2>План (1)</h2>
+
+                    <ul>
+                        <li>Въведение в Scala</li>
+                        <li>Поглед към абстрактността в математиката</li>
+                        <li>Контекст в програмния код</li>
+                        <li>Полиморфизъм и видове полиморфизъм</li>
+                        <li>Type classes. Примери</li>
+                        <li>Езици, поддържащи type classes</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>План (2)</h2>
+
+                    <ul>
+                        <li>Ефекти</li>
+                        <li>Монади и композиция на последователни изчисления върху ефекти</li>
+                        <li>Апликативи и композиция на независими ефекти</li>
+                        <li>Ползи при програмирането на реактивни системи</li>
+                        <li>Денотационна семантика на FRP</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Въведение в Scala</h2>
+
+                    <p class="fragment">Симбиоза между ФП и ООП</p>
+                    <p class="fragment">SCAlable LAnguage</p>
+                </section>
+
+                <section>
+                    <h2>Дефиниции</h2>
+
+                    <pre><code class="scala">val n = 42
+var n = 42
+def n = 42
+lazy val n = 42
+
+val n: Int = 42</code></pre>
+                </section>
+
+                <section>
+                    <h2>Инфиксно извикване на метод</h2>
+
+                    <pre><code>val a = 2
+val b = 4
+
+val c = a + b
+val d = a.+(b)</code></pre>
+                </section>
+
+                <section>
+                    <h2>Функции</h2>
+
+                    <pre><code class="scala">def double(n: Int): Int = n * 2
+
+def twice(f: Int => Int): Int => Int = n => f(f(n))
+// def twice(f: Int => Int) = f compose f
+
+twice(double)(2) // 8
+twice(twice(n => n + 1))(2) // 6
+twice(twice(_ + 1))(2) // 6</code></pre>
+                </section>
+
+                <section>
+                    <h2>Всичко е израз</h2>
+
+                    <pre><code class="scala">def fact(n: Int) =
+  if (n == 0) 1
+  else n * fact(n - 1)</code></pre>
+                </section>
+
+                <section>
+                    <h2>Всичко е израз</h2>
+
+                    <pre><code class="scala">def fact(n: Int) = {
+  println(s"Fact: $n")
+
+  if (n == 0) 1
+  else n * fact(n - 1)
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Множество списъци от параметри</h2>
+
+                    <pre><code class="scala">def sum(a: Int, b: Int, c: Int) = a + b + c
+
+def sum(a: Int)(b: Int)(c: Int) = a + b + c
+
+sum(1, 2, 3) == sum(1)(2)(3)</code></pre>
+                </section>
+
+                <section>
+                    <pre><code class="scala">def map1[A, B](xs: List[A], f: A => B) = xs.map(f)
+
+val xs = List(1, 2, 3)
+
+// map1(xs, n => n.toString) – не работи
+map1(xs, (n: Int) => n.toString)</code></pre>
+
+                    <pre><code>def map2[A, B](xs: List[A])(f: A => B) = xs.map(f)
+
+map2(xs)(n => n.toString)
+map2(xs) { n => n.toString }
+
+map2(xs) { n =>
+   val double = n * 2
+   double.toString
+}</code></pre>
+                </section>
+
+                <section>
+                    <pre><code class="scala">class Rational(n: Int, d: Int = 1) extends Ordered[Rational] {
+  require(d != 0)
+
+  val (numer, denom) = {
+    val div = gcd(n.abs, d.abs)
+
+    (d.signum * n / div, d.abs / div)
+  }
+
+  @tailrec
+  private def gcd(a: Int, b: Int): Int =
+    if (b == 0) a else gcd(b, a % b)
+
+  def unary_- = new Rational(-numer, denom)
+  def inverse = new Rational(denom, numer)
+
+  def +(that: Rational) = new Rational(
+    numer * that.denom + that.numer * denom,
+    denom * that.denom
+  )
+  def -(that: Rational) = this + (-that)
+  def *(that: Rational) = new Rational(
+    numer * that.denom,
+    that.numer * denom
+  )
+  def /(that: Rational) = this * that.inverse
+
+  override def equals(other: Any): Boolean = other match {
+    case that: Rational =>
+      numer == that.numer && denom == that.denom
+    case _ => false
+  }
+  override def hashCode(): Int = (numer, denom).##
+
+  override def toString = s"$numer/$denom"
+
+  override def compare(that: Rational): Int = (this - that).numer
+}
+
+object Rational {
+  def apply(n: Int, d: Int = 1) = new Rational(n, d)
+
+  implicit def intToRational(n: Int) = new Rational(n)
+}
+
+Rational(3) + 4
+4 + Rational(3)</code></pre>
+                </section>
+
+                <section>
+                    <h2>Traits</h2>
+                    <p>(и множествено наследяване)</p>
+
+                    <pre><code class="scala">trait A {
+  def a: Int
+
+  def b = a.toString
+}
+
+trait B {
+  def c: Int
+
+  def mult(n: Int) = c * n
+}
+
+class C extends A with B {
+  val a = 42
+  def c = a
+}
+
+val instance = new C()
+val asValue = new A with B {
+  val a = 1
+  val c = 2
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Абстрактността в математиката</h2>
+
+                    <p class="fragment">Примери: групи, полета, полиноми, векторни пространства и много други</p>
+                    <p class="fragment">Алгебрични структури – множества със съответни операции и аксиоми (свойства)</p>
+                    <p class="fragment">алгебрични структури ~ тип данни</p>
+                </section>
+
+                <section>
+                    <h2>Група</h2>
+
+                    <p>Нека G е множество с бинарна операция „·“</p>
+                    <p>G наричаме група, ако:</p>
+
+                    <ul class="fragment">
+                        <li>
+                            асоциативност – ∀ a, b, c ∈ G:
+                            <pre><code class="nohighlight">(a · b) · c = a · (b · c)</code></pre>
+                        </li>
+                        <li>
+                            неутрален елемент – ∃ e ∈ G, такъв че ∀ a ∈ G
+                            <pre><code class="nohighlight">e · a = a · e = a</code></pre>
+                        </li>
+                        <li>
+                            обратен елемент – ∀ a ∈ G, ∃ a' ∈ G, такъв че
+                            <pre><code class="nohighlight">a · a' = a' · a = e</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Моноид</h2>
+
+                    <p>Нека M е множество с бинарна операция „·“</p>
+                    <p>M наричаме група, ако:</p>
+
+                    <ul>
+                        <li>
+                            асоциативност – ∀ a, b, c ∈ M:
+                            <pre><code class="nohighlight">(a · b) · c = a · (b · c)</code></pre>
+                        </li>
+                        <li>
+                            неутрален елемент – ∃ e ∈ M, такъв че ∀ a ∈ M
+                            <pre><code class="nohighlight">e · a = a · e = a</code></pre>
+                        </li>
+                        <li>
+                            <del>
+                                обратен елемент – ∀ a ∈ M, ∃ a' ∈ M, такъв че
+                                <pre><code class="nohighlight">a · a' = a' · a = e</code></pre>
+                            </del>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Реализация?</h2>
+
+                    <div class="fragment">
+                        <p>Задача: метод <code>sum</code> за различни типове</p>
+
+                        <pre><code class="scala">def sum[A ???](xs: List[???]): A = ???</code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Контекст в програмния код</h2>
+
+                    <p class="fragment">в математиката: „Нека фиксираме поле F“</p>
+                </section>
+
+                <section>
+                    <dl>
+                        <dt>context</dt>
+                        <dd>1. The parts of a written or spoken statement that precede or follow a specific word or passage, usually influencing its meaning or effect;</dd>
+                        <dd class="fragment">2. The set of circumstances or facts that surround a particular event, statement, idea, etc.</dd>
+                    </dl>
+                </section>
+
+                <section>
+                    <h2>Примери</h2>
+
+                    <p>Текуща:</p>
+                    <ul>
+                        <li>конфигурация</li>
+                        <li>транзакция</li>
+                        <li>сесия</li>
+                        <li>ExecutionContext – pool от нишки</li>
+                        <li>...</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Контекст в програмния код</h2>
+
+                    <ul>
+                        <li class="fragment">import</li>
+                        <li class="fragment">подтипов полиморфизъм</li>
+                        <li class="fragment">dependency injection</li>
+                        <li class="fragment">външен scope</li>
+                        <li class="fragment">параметри</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <p>Експлицитен контекст</p>
+                </section>
+
+                <section>
+                    <p>Имплицитен контекст</p>
+                </section>
+
+                <section>
+                    <p>Implicits в Scala</p>
+                </section>
+
+                <section>
+                    <p>Type class-овете дефинират операции и аксиоми/свойства, които даден тип трябва да притежава.</p>
+
+                    <p class="fragment">За да бъде един тип от даден клас, то трябва да предоставим валидна имплементация на операциите на type class-а</p>
+                </section>
+
+                <section>
+                    <p>Класовете в ООП моделират обекти</p>
+                    <p class="fragment">(статичните членове не са полиморфни)</p>
+                    <p class="fragment">Type class-овете моделират типове</p>
+                </section>
+
+                <section>
+                    <h2>Аксиомите са важни</h2>
+
+                    <p>((a · b) · c) · d – едно по едно, от ляво надясно</p>
+                    <p>(a · b) · (c · d) – балансирано и паралелизуемо</p>
+
+                    <p class="fragment">Могат да бъдат проверявани програмно</p>
+                </section>
+
+                <section>
+                    <h2>Полиморфизъм</h2>
+
+                    <p class="fragment">Използването на един и същи интерфейс с различни типове</p>
+                </section>
+
+                <section>
+                    <h2>Параметричен полиморфизъм (generics)</h2>
+
+                    <pre><code class="scala">def mapTwice[A](xs: List[A])(f: A => A): List[A] =
+  xs.map(f compose f)</code></pre>
+                </section>
+
+                <section>
+                    <h2>Ad hoc полиморфизъм</h2>
+
+                    <p>Избор на конкретна имплементация според конкретния тип</p>
+                </section>
+
+                <section>
+                    <h2>Ad hoc полиморфизъм – overloading</h2>
+
+                    <pre><code class="scala">def stringify(n: Int) = n.toString
+def stringify(n: Rational) = s"$n.numer/$n.denom"
+
+stringify(1) // "1"
+stringify(Rational(1)) // "1/1"</code></pre>
+                </section>
+
+                <section>
+                    <h2>Ad hoc полиморфизъм – type classes</h2>
+
+                    <p class="fragment">Пример: реализацията на <code>Monoid</code> се избира конкретно според типа</p>
+                </section>
+
+                <section>
+                    <h2>Подтипов полиморфизъм</h2>
+
+                    <pre><code class="scala">trait Figure {
+  def area: Double
+  def circumference: Double
+}
+
+case class Circle(radius: Double) extends Figure {
+  def area: Double = Pi * radius * radius
+  def circumference: Double = 2 * Pi * radius
+}
+
+case class Square(side: Double) extends Figure {
+  def area: Double = side * side
+  def circumference: Double = 4 * side
+}
+
+val figure = getRandomFigure(10)
+figure.area // 100</code></pre>
+                    <p class="fragment">Липсва информация за конкретния тип, но се изпълнява конкретна имплементация</p>
+                </section>
+
+                <section>
+                    <h2>Duck typing и структурно подтипизиране</h2>
+
+                    <pre><code class="scala">type Closable = { def close(): Unit }
+
+def handle[A <: Closable, B](resource: A)(f: A => B): B =
+  try f(resource) finally resource.close()
+
+handle(new FileReader("file.txt"))(f => readLines(f))</code></pre>
+                </section>
+
+                <section>
+                    <h2>Binding</h2>
+
+                    <ul class="fragment">
+                        <li>Static (compile time) – параметричен и ad-hoc полиморфизъм</li>
+                        <li>Late (runtime) – подтипов полиморфизъм и duck typing</li>
+                    </ul>
+
+                    <p class="fragment">Late binding-а е фундаментален за ООП</p>
+                </section>
+
+                <section>
+                    <blockquote>
+                        “I thought of objects being like biological cells and/or individual computers on a network, only able to communicate with messages...
+                        OOP to me means only messaging, local retention and protection and hiding of state-process, and extreme late-binding of all things.”
+                        ― Alan Kay
+                    </blockquote>
+
+                    <p class="fragment">Така, актьорите и процесите в Erlang имплементират ООП, използвайки явни съобщения за late binding</p>
+                </section>
+
+                <section>
+                    <h2>Ретроактивност</h2>
+
+                    <p>разширяване на тип без промяна на кода му</p>
+                </section>
+
+                <section>
+                    <h2>Ретроактивен полиморфизъм</h2>
+
+                    <p>добавяне на интерфейс към тип<br />без промяна на кода му</p>
+                </section>
+
+                <section>
+                    <h2>Други примери за type class-ове</h2>
+                </section>
+
+                <section>
+                    <h2>Езици, поддържащи<br />type class-ове</h2>
+
+                    <ul>
+                        <li>Haskell</li>
+                        <li>Scala</li>
+                        <li>Rust</li>
+                        <li>Idris</li>
+                        <li>...</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <p>Пример на Rust</p>
+                </section>
+
+                <section>
+                    <h2>Ефекти</h2>
+
+                    <ul>
+                        <li>Future[T] – асинхронно изчисление</li>
+                        <li>Task[T] – lazy асинхронно изчисление</li>
+                        <li>Stream[T], Observable[T] – поток</li>
+                        <li>Iteratee[T] – консуматор на поток</li>
+                        <li>DBAction[T] – заявка/действие към базата</li>
+                        <li>Option[T] – опционалност</li>
+                        <li>List[T] – множественост</li>
+                        <li>Try[T] – стойност или неуспех с причина</li>
+                        <li>...</li>
+                    </ul>
+
+                    <p class="fragment">Характерни са за реактивните приложения</p>
+                </section>
+
+                <section>
+                    <h2>Пример – Option</h2>
+
+                    <pre><code class="scala">sealed abstract class Option[+A]
+case class Some[+A](x: A) extends Option[A]
+case object None extends Option[Nothing]</code></pre>
+                </section>
+
+                <section>
+                    <h2>Композитност на функции</h2>
+
+                    <p>Нека имаме функции f: A => B и g: B => C.</p>
+
+                    <p>h(x) = g(f(x)) е функция от тип A => C</p>
+
+                    <p>h = g ∘ f</p>
+                </section>
+
+                <section>
+                    <h2>Композитност на функции</h2>
+
+                    <ul>
+                        <li>
+                            асоциативност – нека f: A => B, g: B => C и h: C => D. Тогава:
+                            <pre><code class="nohighlight">(h ∘ g) ∘ f = h ∘ (g ∘ f)</code></pre>
+                        </li>
+                        <li>
+                            неутрален елемент – нека identity = x => x. Тогава ∀ f
+                            <pre><code class="nohighlight">identity ∘ f = f ∘ identity = f</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Композитност на функции</h2>
+
+                    <p>h ∘ g ∘ f</p>
+                </section>
+
+                <section>
+                    <h2>Композитност на ефектни функции?</h2>
+
+                    <p>Нека<br />f: A => Option[B],<br />g: B => Option[C],<br />h => Option[D].</p>
+
+                    <p>h ∘ g ∘ f?</p>
+                </section>
+
+                <section>
+                    <pre><code class="scala">
+def compose[A, B, C, D](f: A => Option[B],
+                        g: B => Option[C],
+                        h: C => Option[D]): Option[D] = {
+  val fOption = f(value)
+  if (fOption != None) {
+    val gOption = g(fOption.get)
+    if (gOption != None){
+      h(gOption.get)
+    } else {
+      None
+    }
+  } else {
+    None
+  }
+}</code></pre>
+                    <p class="fragment">Прилича на callback hell код – причината е същата</p>
+                    <p class="fragment">Нека да решим този проблем преизползваемо</p>
+                </section>
+
+                <section>
+                    <h2>Монад</h2>
+
+                    <pre><code class="scala">trait Monad[F[_]] {
+  def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C]
+  def unit[A](a: A): F[A]
+}</code></pre>
+
+                    <p class="fragment">F е конструктор на тип, а не тип</p>
+                    <p class="fragment">Пример: List е конструктор, List[Int] е тип</p>
+                </section>
+
+                <section>
+                    <ul>
+                        <li>
+                            асоциативност:
+                            <pre><code class="scala" style="width: 700px">compose(compose(f, g), h) == compose(f, compose(g, h))</code></pre>
+                        </li>
+                        <li>
+                            неутрален елемент
+                            <pre><code class="scala">compose(unit, f) == compose(f, unit) == f</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <p>Демо (монади)</p>
+                </section>
+
+                <section>
+                    <pre><code class="scala">trait Monad[F[_]] {
+  def flatMap[A, B](m: F[A])(f: A => F[B]): F[B]
+  def unit[A](a: A): F[A]
+
+  def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] =
+    a => flatMap(f(a))(g)
+}</code></pre>
+                </section>
+
+                <section>
+                    <p>Полиморфизъм около конструктори на тип наричаме полиморфизъм от по-висок ред</p>
+                </section>
+
+                <section>
+                    <h2>Монади с нула</h2>
+
+                    <p>mzero: F[A] е нула, ако:</p>
+
+                    <ul>
+                        <li>
+                            ∀f: A → F[B] е изпълнено:
+                            <pre><code class="scala">flatMap(mzero)(f) == mzero</code></pre>
+                        </li>
+                        <li>
+                            ∀m ∈ F[A] е изпълнено:
+                            <pre><code class="scala" style="width: 500px">flatMap(mzero)(m)(x => mzero) == mzero</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <pre><code class="scala">trait MonadWithZero[F[_]] extends Monad[F] {
+  def mzero[A]: F[A]
+  def filter[A](m: F[A])(f: A => Boolean): F[A] =
+    flatMap(m) { x => if (f(x)) unit(x) else mzero }
+}</code></pre>
+                </section>
+
+                <section>
+                    <pre><code class="scala">val res1 = for {
+  a <- Success(2)
+  b <- Failure(new IllegalArgumentException)
+  c <- Success(a + b)
+  d <- Failure(new IndexOutOfBoundsException)
+} yield a + b + c + d
+
+// res1: scala.util.Try[String] =
+//   Failure(java.lang.IllegalArgumentException)
+
+val res2 = for {
+  a <- res1
+  b <- Success(4)
+} yield a + b
+
+// res2: scala.util.Try[String] =
+//   Failure(java.lang.IllegalArgumentException)</code></pre>
+
+                    <p class="fragment">Подпомага постигането на устойчивост при реактивните системи</p>
+                </section>
+
+                <section>
+                    <pre><code class="scala">val res = for {
+  e1 <- List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+  if e1 % 2 != 0
+  e2 <- List(4, 5, 6, 7, 8, 9, 10)
+  if e2 < e1
+} yield (e1, e2)
+
+// res: List[(Int, Int)] = List((5,4), (7,4), (7,5), (7,6), (9,4),
+//   (9,5), (9,6), (9,7), (9,8))</code></pre>
+                </section>
+
+                <section>
+                    <pre><code class="scala">val httpRequest: Iteratee[Array[Byte], HttpRequest] = for {
+  (method, path) <- requestLineIteratee
+  headers <- Enumeratee.asciiLines.transform(headersIteratee)
+  body <- bodyIteratee(headers)
+} yield HttpRequest(method, path, headers, body)</code></pre>
+
+                    <pre><code class="scala">val httpResponse: Iteratee[Array[Byte], HttpResponse] = for {
+  statusCode <- statusLineIteratee
+  headers <- Enumeratee.asciiLines.transform(headersIteratee)
+  body <- bodyIteratee(headers)
+} yield HttpResponse(statusCode, headers, body)</code></pre>
+                </section>
+
+                <section>
+                    <h2>Апликативи</h2>
+
+                    <p>функтор, позволяващ комбинирането на няколко независими ефектни стойности в произведение<br />(n-торка)</p>
+                </section>
+
+                <section>
+                    <pre><code class="scala">trait Applicative[F[_]] extends Functor[F] {
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)]
+  def unit[A](a: A): F[A]
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Паралелна валидация</h2>
+
+                    <pre><code class="scala">sealed abstract class Validated[+E, +A]
+
+object Validated {
+  final case class Valid[+A](a: A) extends Validated[Nothing, A]
+  final case class Invalid[+E](e: E) extends Validated[E, Nothing]
+}
+
+type ValidatedNel[+E, +A] = Validated[NonEmptyList[E], A]
+</code></pre>
+                </section>
+
+                <section>
+                    <p>Паралелна в смисъл на независима и паралелизуема</p>
+                </section>
+
+                <section>
+                    <pre><code class="scala">for {
+  user <- getUser(id)
+  (profile, orders) <- // апликатив в монадна композиция
+    (getOrders(user.email), getProfile(user)).sequence
+  products <- getMatchingProducts(profile, orders)
+} yield products</code></pre>
+                </section>
+
+                <section>
+                    <p>При апликативите – ефектните стойности са независими</p>
+
+                    <p>При монадите – предишни изчисления могат да повлияят какви ефектни изчисления да бъдат извършени впоследствие</p>
+                </section>
+
+                <section>
+                    <h2>Семантика на Функционално Реактивно Програмиране</h2>
+
+                    <p>(от Конал Елиът)</p>
+                </section>
+
+                <section>
+                    <ul>
+                        <li>събитиен поток:
+                            <pre><code class="scala">type E[A] = Set[(T, A)]</code></pre>
+                        </li>
+                        <li>поведение:
+                            <pre><code class="scala">type B[A] = T => A</code></pre>
+                        </li>
+                        <li>T – тип за времето, напр. T = ℝ
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>1. Поведение</h2>
+
+                    <ul>
+                        <li>Функтор – map влияе само върху стойността A</li>
+                        <li>
+                            Апликатив:
+                            <pre><code>def product(a: B[A], b: B[B]) = t => (a(t), b(t))</code></pre>
+                            <pre><code>def unit(a: A) = t => a // константа през цялото време</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>2. Събития</h2>
+
+                    <ul>
+                        <li>Моноид с merge – слива двете множества спрямо времето, като от едновременни събития взима само първото</li>
+                        <li>Функтор – map влияе само върху стойността A</li>
+                        <li>Монад</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>3. Връзка между събития и поведения (реактивност)</h2>
+
+                    <pre><code class="scala">def switcher[A](b0: B[A], e: E[B[A]]): B[A] =
+  (t: T) => (b0 :: e.filter({ case (time, _) => time < t})).last</code></pre>
+                    <p>при всяко събитие поведението се подменя с ново</p>
+
+                    <div class="fragment">
+                        <pre><code class="scala">def stepper[A](a: A, e: E[A]): B[A] =
+  switcher(Monad.unit(e), e.map(Monad.unit(_)))</code></pre>
+                        <p>започва от стойността a и при всяко събитие се подменя</p>
+                    </div>
+                </section>
+
+                <section>
+                    <p>Така можем да говорим за FRP математически и да верифицираме неговата композитност</p>
+                </section>
+
+                <section>
+                    <h2>В заключение</h2>
+
+                    <p>Type class-овете:</p>
+
+                    <ul>
+                        <li>предоставят общ интерфейс между различни типове</li>
+                        <li>дават възможност за моделиране на типове</li>
+                        <li>позволяват полиморфизъм</li>
+                        <li>наблягат на композитността и декларативността</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Въпроси?</h2>
+                </section>
+            </div>
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.js"></script>
+
+        <script>
+            // More info about config & dependencies:
+            // - https://github.com/hakimel/reveal.js#configuration
+            // - https://github.com/hakimel/reveal.js#dependencies
+            Reveal.initialize({
+                history: true,
+                transition: "fade",
+                dependencies: [
+                    { src: 'plugin/markdown/marked.js' },
+                    { src: 'plugin/markdown/markdown.js' },
+                    { src: 'plugin/notes/notes.js', async: true },
+                    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+                ]
+            });
+        </script>
+    </body>
 </html>
