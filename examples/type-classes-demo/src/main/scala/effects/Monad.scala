@@ -1,34 +1,37 @@
-package solutions
+package effects
 
-import effects.Functor
+import effects.Applicative.ApplicativeOps
+import effects.Monad.MonadOps
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}
 
 trait Monad[F[_]] extends Applicative[F] {
-  def flatMap[A, B](m: F[A])(f: A => F[B]): F[B]
+  def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
   def unit[A](a: => A): F[A]
 
-  def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] = a => flatMap(f(a))(g)
-
+  def map[A, B](m: F[A])(f: A => B): F[B] = flatMap(m)(a => unit(f(a)))
   def product[A, B](fa: F[A], fb: F[B]): F[(A, B)] = flatMap(fa)(a => map(fb)(b => (a, b)))
 
-  def apply[A, B](mf: F[A => B])(ma: F[A]): F[B] = flatMap(mf)(f => map(ma)(f))
-  def map[A, B](m: F[A])(f: A => B): F[B] = flatMap(m)(x => unit(f(x)))
-
+  def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] = a => flatMap(f(a))(g)
   def join[A](mm: F[F[A]]): F[A] = flatMap(mm)(x => x)
 }
 
 object Monad {
-  def compose[A, B, C, F[_]](f: A => F[B], g: B => F[C])(implicit m: Monad[F]) = m.compose(f, g)
-  def map[A, B, F[_]](ma: F[A])(f: A => B)(implicit m: Monad[F]) = m.map(ma)(f)
-  def map2[A, B, C, F[_]](ma: F[A], mb: F[B])(f: (A, B) => C)(implicit m: Monad[F]) = m.map2(ma, mb)(f)
-  def join[A, F[_]](mm: F[F[A]])(implicit m: Monad[F]) = m.join(mm)
-  def traverse[A, B, F[_]](xs: List[A])(f: A => F[B])(implicit m: Monad[F]) = m.traverse(xs)(f)
-  def sequence[A, F[_]](ml: List[F[A]])(implicit m: Monad[F]) = m.sequence(ml)
+  def apply[F[_]](implicit m: Monad[F]) = m
 
-  // Имплементация на монади в библиотеката на Scala
+  trait MonadOps extends ApplicativeOps {
+    implicit class MonadOps[F[_] : Monad, A](fa: F[A]) {
+      def flatMap[B](f: A => F[B]) = Monad[F].flatMap(fa)(f)
+
+//      // Scala typed fun
+//      def join[B](implicit ev: A =:= F[B]): F[B] = Monad[F].join(ev(fa))
+    }
+  }
+  object ops extends MonadOps
+
+  // Implementing monads from the Scala library
   implicit val optionMonad = new MonadWithZero[Option] {
     def flatMap[A, B](m: Option[A])(f: A => Option[B]): Option[B] = m flatMap f
     def unit[A](a: => A): Option[A] = Some(a)
@@ -64,9 +67,16 @@ object Monad {
 
 trait MonadWithZero[F[_]] extends Monad[F] {
   def mzero[A]: F[A]
-  def filter[A](m: F[A])(f: A => Boolean): F[A] = flatMap(m) { x => if (f(x)) unit(x) else mzero }
+  def filter[A](fa: F[A])(f: A => Boolean): F[A] = flatMap(fa) { x => if (f(x)) unit(x) else mzero }
 }
 
 object MonadWithZero {
-  def filter[A, F[_]](ma: F[A])(f: A => Boolean)(implicit m: MonadWithZero[F]) = m.filter(ma)(f)
+  def apply[F[_]](implicit m: MonadWithZero[F]) = m
+
+  trait MonadWithZeroOps extends MonadOps {
+    implicit class MonadWithZeroOps[F[_] : MonadWithZero, A](fa: F[A]) {
+      def filter(f: A => Boolean) = MonadWithZero[F].filter(fa)(f)
+    }
+  }
+  object ops extends MonadWithZeroOps
 }

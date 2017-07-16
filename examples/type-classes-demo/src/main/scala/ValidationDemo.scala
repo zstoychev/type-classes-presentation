@@ -5,6 +5,7 @@ import cats.implicits._
 case class Date(year: Int, month: Int, day: Int) {
   require(isValid(year, month, day))
 
+  // TODO: Use correct implementation
   private def isValid(year: Int, month: Int, day: Int) = year > 0 && month > 0 && day > 0
 }
 
@@ -43,6 +44,7 @@ object ValidationTest extends App {
 
   def validate(input: Input): ValidatedNel[String, Person] = {
     val birthday = (
+      // |@| returns a cartesian builder – allows us to build tuples and to map them using an Applicative
       integer(input.birthYear) |@|
       integer(input.birthMonth) |@|
       integer(input.birthDay)
@@ -56,7 +58,7 @@ object ValidationTest extends App {
     ).map(Person.apply)
   }
 
-  val input = Input("Zdravko", "zdravkogmail.com", "29", "f1988", "3", "31")
+  val input = Input("Zdravko", "zstoychevgmail.com", "29", "f1988", "3", "31")
 
   validate(input) match {
     case Valid(person) => println(person)
@@ -64,4 +66,12 @@ object ValidationTest extends App {
       println("The following issues have been found while parsing input:")
       errors.toList.foreach(println)
   }
+
+  /*
+  Result:
+
+  The following issues have been found while parsing input:
+  zstoychevgmail.com is not a valid email
+  f1988 is not an integer
+   */
 }

@@ -1,6 +1,6 @@
-package solutions
+package effects
 
-import effects.Functor
+import effects.Functor.FunctorOps
 
 import scala.language.higherKinds
 
@@ -18,10 +18,17 @@ trait Applicative[F[_]] extends Functor[F] {
 
   // and so on...
 
+  // generalizing productN and mapN:
   def sequence[A](ml: List[F[A]]): F[List[A]] = traverse(ml)(m => m)
   def traverse[A, B](xs: List[A])(f: A => F[B]): F[List[B]] = {
     xs.foldRight(unit(List[B]())) { (next, acc) =>
       map2(f(next), acc)(_ :: _)
     }
   }
+}
+
+object Applicative {
+  def apply[F[_]](implicit f: Applicative[F]) = f
+
+  trait ApplicativeOps extends FunctorOps
 }

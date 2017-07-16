@@ -632,8 +632,8 @@ case object None extends Option[Nothing]</code></pre>
                     <pre><code class="scala">
 def compose[A, B, C, D](f: A => Option[B],
                         g: B => Option[C],
-                        h: C => Option[D]): Option[D] = {
-  val fOption = f(value)
+                        h: C => Option[D]): A => Option[D] = a => {
+  val fOption = f(a)
   if (fOption != None) {
     val gOption = g(fOption.get)
     if (gOption != None){
@@ -647,6 +647,12 @@ def compose[A, B, C, D](f: A => Option[B],
 }</code></pre>
                     <p class="fragment">Прилича на callback hell код – причината е същата</p>
                     <p class="fragment">Нека да решим този проблем преизползваемо</p>
+                </section>
+
+                <section>
+                    <p>Нека да изнесем композирането в абстракция</p>
+
+                    <p class="fragment">(вместо да го „преоткриваме“ всеки път в кода)</p>
                 </section>
 
                 <section>
@@ -675,21 +681,94 @@ def compose[A, B, C, D](f: A => Option[B],
                 </section>
 
                 <section>
-                    <p>Демо (монади)</p>
+                    <p>Полиморфизъм около конструктори на тип наричаме полиморфизъм от по-висок ред</p>
                 </section>
 
                 <section>
+                    <pre><code class="scala">val optionMonad = new Monad[Option] {
+  def compose[A, B, C](f: A => Option[B], g: B => Option[C]) =
+    (a: A) => f(a) match {
+      case Some(b) => g(b)
+      case _ => None
+    }
+  def unit[A](a: A): Option[A] = Some(a)
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Алтернативна дефиниция чрез flatMap</h2>
+
                     <pre><code class="scala">trait Monad[F[_]] {
-  def flatMap[A, B](m: F[A])(f: A => F[B]): F[B]
+  def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
   def unit[A](a: A): F[A]
 
   def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] =
     a => flatMap(f(a))(g)
 }</code></pre>
+
+                    <div class="fragment">
+                        flatMap може да се изрази чрез compose като:
+                        <pre><code class="scala">compose((_: Unit) => fa, f)(())</code></pre>
+                    </div>
                 </section>
 
                 <section>
-                    <p>Полиморфизъм около конструктори на тип наричаме полиморфизъм от по-висок ред</p>
+                    <pre><code class="scala">
+def compose[A, B, C, D](f: A => Option[B],
+                        g: B => Option[C],
+                        h: C => Option[D]): A => Option[D] = a => {
+  f(a).flatMap(b =>
+    g(b).flatMap(c =>
+      h(c)))
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Scala синтактична захар за монади</h2>
+                    <pre><code class="scala">for {
+  b <- f(a)
+  c <- g(b)
+  d <- h(c)
+} yield d</code></pre>
+                </section>
+
+                <section>
+                    <h2>Може да използваме всяка предишна стойност</h2>
+
+                    <pre><code class="scala">for {
+  b <- f(a)
+  c <- g(b * 2)
+  d <- h(b + c)
+} yield a * b * d</code></pre>
+
+                    <div class="fragment">
+                      <p>преобразува се до:</p>
+
+                      <pre><code class="scala">f(a).flatMap(b =>
+  g(b * 2).flatMap(c =>
+    h(b + c).map(d => a * b * d))
+}</code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Функторите са генерализация на монадите:</h2>
+
+                    <pre><code class="scala">trait Functor[F[_]]  {
+  def map[A, B](fa: F[A])(f: A => B): F[B]
+}</code></pre>
+
+                    <pre class="fragment"><code class="scala">trait Monad[F[_]] extends Functor[F] {
+  def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
+  def unit[A](a: A): F[A]
+
+  def map[A, B](fa: F[A])(f: A => B): F[B] =
+    flatMap(fa)(a => unit(f(a))
+}</code></pre>
+                </section>
+
+                <section>
+                    <p>Демо (монади)</p>
                 </section>
 
                 <section>
@@ -752,6 +831,7 @@ val res2 = for {
                 </section>
 
                 <section>
+                    <h2>Пример – HTTP</h2>
                     <pre><code class="scala">val httpRequest: Iteratee[Array[Byte], HttpRequest] = for {
   (method, path) <- requestLineIteratee
   headers <- Enumeratee.asciiLines.transform(headersIteratee)
@@ -775,7 +855,35 @@ val res2 = for {
                     <pre><code class="scala">trait Applicative[F[_]] extends Functor[F] {
   def product[A, B](fa: F[A], fb: F[B]): F[(A, B)]
   def unit[A](a: A): F[A]
+
+  def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
+    map(product(fa, fb)) { case (a, b) => f(a, b)}
 }</code></pre>
+                </section>
+
+                <section>
+                    <pre><code class="scala">trait Applicative[F[_]] extends Functor[F] {
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)]
+  def unit[A](a: A): F[A]
+
+  def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
+    map(product(fa, fb)) { case (a, b) => f(a, b)}
+
+  // Генерализация на productN и mapN:
+  def sequence[A](ml: List[F[A]]): F[List[A]] = traverse(ml)(m => m)
+  def traverse[A, B](xs: List[A])(f: A => F[B]): F[List[B]] = {
+    xs.foldRight(unit(List[B]())) { (next, acc) =>
+      map2(f(next), acc)(_ :: _)
+    }
+  }
+}</code></pre>
+
+                    <pre class="fragment"><code class="scala">val futureResults: Future[List[Int]] = Applicative[Future].sequence(
+  List(
+    retrieveA(),
+    retrieveB(),
+    retrieveC()
+  ))</code></pre>
                 </section>
 
                 <section>
@@ -797,12 +905,20 @@ type ValidatedNel[+E, +A] = Validated[NonEmptyList[E], A]
                 </section>
 
                 <section>
+                    <h2>Паралелна валидация<br />(демо с Cats)</h2>
+                </section>
+
+                <section>
+                    <h2>Композитност и паралелизация</h2>
+
                     <pre><code class="scala">for {
   user <- getUser(id)
   (profile, orders) <- // апликатив в монадна композиция
     (getOrders(user.email), getProfile(user)).sequence
   products <- getMatchingProducts(profile, orders)
 } yield products</code></pre>
+
+                    <p class="fragment"><code>getOrders</code> и <code>getProfile</code> ще бъдат изпълнени паралелно</p>
                 </section>
 
                 <section>
@@ -812,9 +928,15 @@ type ValidatedNel[+E, +A] = Validated[NonEmptyList[E], A]
                 </section>
 
                 <section>
+                    <h2>Книга</h2>
+
+                    <p><a href="https://www.manning.com/books/functional-programming-in-scala"><img src="images/functional-programming-in-scala.jpg"></a></p>
+                </section>
+
+                <section>
                     <h2>Семантика на Функционално Реактивно Програмиране</h2>
 
-                    <p>(от Конал Елиът)</p>
+                    <p>(<a href="http://conal.net/papers/push-pull-frp/">от Конал Елиът</a>)</p>
                 </section>
 
                 <section>
@@ -877,10 +999,12 @@ type ValidatedNel[+E, +A] = Validated[NonEmptyList[E], A]
                     <p>Type class-овете:</p>
 
                     <ul>
-                        <li>предоставят общ интерфейс между различни типове</li>
-                        <li>дават възможност за моделиране на типове</li>
-                        <li>позволяват полиморфизъм</li>
-                        <li>наблягат на композитността и декларативността</li>
+                        <li class="fragment">моделират на типове</li>
+                        <li class="fragment">предоставят общ интерфейс и аксиоми за цяло множество от типове</li>
+                        <li class="fragment">или още – общ език, чрез който да мислим и боравим с тези типове</li>
+                        <li class="fragment">позволяват ad hoc полиморфизъм</li>
+                        <li class="fragment">наблягат на композитността и декларативността</li>
+                        <li class="fragment">не изискват промяна на кода на типа и могат да бъдат контекстно-зависими</li>
                     </ul>
                 </section>
 
