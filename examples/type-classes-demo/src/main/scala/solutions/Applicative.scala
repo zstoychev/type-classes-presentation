@@ -2,6 +2,8 @@ package solutions
 
 import effects.Functor
 
+import scala.language.higherKinds
+
 trait Applicative[F[_]] extends Functor[F] {
   def product[A, B](fa: F[A], fb: F[B]): F[(A, B)]
   def unit[A](a: => A): F[A]

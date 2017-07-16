@@ -1,8 +1,6 @@
 package math
 
 
-import effects.Monoid
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 
@@ -27,8 +25,8 @@ class Rational(n: Int, d: Int = 1) extends Ordered[Rational] {
   )
   def -(that: Rational) = this + (-that)
   def *(that: Rational) = new Rational(
-    numer * that.denom,
-    that.numer * denom
+    numer * that.numer,
+    denom * that.denom
   )
   def /(that: Rational) = this * that.inverse
 
@@ -46,11 +44,17 @@ class Rational(n: Int, d: Int = 1) extends Ordered[Rational] {
 object Rational {
   def apply(n: Int, d: Int = 1) = new Rational(n, d)
 
-  implicit val rationalMonoid = new Monoid[Rational] {
-    override def op(a: Rational, b: Rational): Rational = a + b
+  implicit def intToRational(n: Int): Rational = new Rational(n)
 
-    override def identity: Rational = 0
+  implicit val rationalAdditiveMonoid = new Monoid[Rational] {
+    def op(a: Rational, b: Rational): Rational = a + b
+
+    val identity: Rational = 0
   }
 
-  implicit def intToRational(n: Int): Rational = new Rational(n)
+  val rationalMultiplicativeMonoid = new Monoid[Rational] {
+    def op(a: Rational, b: Rational): Rational = a * b
+
+    val identity: Rational = 1
+  }
 }

@@ -83,7 +83,7 @@
                 </section>
 
                 <section>
-                    <h2>План (1)</h2>
+                    <h2>План (1) – въведение</h2>
 
                     <ul>
                         <li>Въведение в Scala</li>
@@ -96,7 +96,7 @@
                 </section>
 
                 <section>
-                    <h2>План (2)</h2>
+                    <h2>План (2) – реактивност</h2>
 
                     <ul>
                         <li>Ефекти</li>
@@ -123,6 +123,8 @@ def n = 42
 lazy val n = 42
 
 val n: Int = 42</code></pre>
+
+                    <p class="fragment">Uniform Access Principle</p>
                 </section>
 
                 <section>
@@ -219,8 +221,8 @@ map2(xs) { n =>
   )
   def -(that: Rational) = this + (-that)
   def *(that: Rational) = new Rational(
-    numer * that.denom,
-    that.numer * denom
+    numer * that.numer,
+    denom * that.denom
   )
   def /(that: Rational) = this * that.inverse
 
@@ -339,6 +341,10 @@ val asValue = new A with B {
                 </section>
 
                 <section>
+                    <h2>Рализация за Rational и за всеки моноид (демо)</h2>
+                </section>
+
+                <section>
                     <h2>Контекст в програмния код</h2>
 
                     <p class="fragment">в математиката: „Нека фиксираме поле F“</p>
@@ -349,6 +355,7 @@ val asValue = new A with B {
                         <dt>context</dt>
                         <dd>1. The parts of a written or spoken statement that precede or follow a specific word or passage, usually influencing its meaning or effect;</dd>
                         <dd class="fragment">2. The set of circumstances or facts that surround a particular event, statement, idea, etc.</dd>
+                        <dd class="fragment">3. “What comes with the text, but is not in the text.”</dd>
                     </dl>
                 </section>
 
@@ -378,15 +385,19 @@ val asValue = new A with B {
                 </section>
 
                 <section>
-                    <p>Експлицитен контекст</p>
+                    <p>Експлицитно предаване на контекст</p>
                 </section>
 
                 <section>
-                    <p>Имплицитен контекст</p>
+                    <p>Имплицитно предаване на контекст</p>
                 </section>
 
                 <section>
                     <p>Implicits в Scala</p>
+                </section>
+
+                <section>
+                    <h2>Type class-ове чрез implicits и композитност на подхода (демо)</h2>
                 </section>
 
                 <section>
@@ -421,6 +432,9 @@ val asValue = new A with B {
 
                     <pre><code class="scala">def mapTwice[A](xs: List[A])(f: A => A): List[A] =
   xs.map(f compose f)</code></pre>
+
+                    <pre><code class="scala">mapTwice(List(1, 2, 3)(_ * 2))
+mapTwice(List("ab", "c", "def")(str => str + str))</code></pre>
                 </section>
 
                 <section>
@@ -442,7 +456,10 @@ stringify(Rational(1)) // "1/1"</code></pre>
                 <section>
                     <h2>Ad hoc полиморфизъм – type classes</h2>
 
-                    <p class="fragment">Пример: реализацията на <code>Monoid</code> се избира конкретно според типа</p>
+                    <p>Пример: реализацията на <code>Monoid</code> се избира конкретно според типа</p>
+
+                    <pre><code class="scala">sum(List(Rational(2), Rational(4))) // rationalMonoid
+sum(List(2, 4)) // intMonoid</code></pre>
                 </section>
 
                 <section>
@@ -497,7 +514,7 @@ handle(new FileReader("file.txt"))(f => readLines(f))</code></pre>
                         ― Alan Kay
                     </blockquote>
 
-                    <p class="fragment">Така, актьорите и процесите в Erlang имплементират ООП, използвайки явни съобщения за late binding</p>
+                    <p class="fragment">Така, актьорите от актьорския модел (вкл. в Erlang) също имплементират ООП, използвайки явни съобщения за late binding</p>
                 </section>
 
                 <section>
@@ -510,10 +527,24 @@ handle(new FileReader("file.txt"))(f => readLines(f))</code></pre>
                     <h2>Ретроактивен полиморфизъм</h2>
 
                     <p>добавяне на интерфейс към тип<br />без промяна на кода му</p>
+
+                    <p class="fragment">Type class-овете поддържат ретроактивен полиморфизъм</p>
                 </section>
 
                 <section>
                     <h2>Други примери за type class-ове</h2>
+
+                    Ordering, сериализация до Json и други (демо)
+                </section>
+
+                <section>
+                    <h2>Scala библиотеки</h2>
+
+                    <ul>
+                        <li><a href="http://typelevel.org/cats/">Cats</a></li>
+                        <li><a href="https://github.com/non/spire">Spire</a> – математически абстракции. Стъпва върху Cats</li>
+                        <li><a href="https://github.com/scalaz/scalaz">Scalaz</a></li>
+                    </ul>
                 </section>
 
                 <section>
@@ -529,7 +560,7 @@ handle(new FileReader("file.txt"))(f => readLines(f))</code></pre>
                 </section>
 
                 <section>
-                    <p>Пример на Rust</p>
+                    <p><a href="https://rustbyexample.com/trait.html">Пример на Rust</a></p>
                 </section>
 
                 <section>
