@@ -1,0 +1,1022 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+        <title>Type Classes</title>
+
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/theme/black.css">
+        <link rel="stylesheet" href="css/reactive.css">
+
+        <!-- Theme used for syntax highlighting of code -->
+        <link rel="stylesheet" href="lib/css/zenburn.css">
+
+        <!-- Printing and PDF exports -->
+        <script>
+            var link = document.createElement( 'link' );
+            link.rel = 'stylesheet';
+            link.type = 'text/css';
+            link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+            document.getElementsByTagName( 'head' )[0].appendChild( link );
+        </script>
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h2>Reusable Abstractions using<br />Type Classes</h2>
+                </section>
+
+                <section>
+                    <h2>Reactive</h2>
+
+                    <p class="fragment">being responsive to the outside world</p>
+                </section>
+
+                <section>
+                    <h2>Manifestations of time</h2>
+
+                    <ul>
+                        <li>external asynchronous events</li>
+                        <li class="fragment">imperative flow</li>
+                        <li class="fragment">others (interactions between threads, listeners registration order, ...)</li>
+                    </ul>
+                </section>
+
+
+                <section>
+                    <h2>Manifestations of time</h2>
+
+                    <ul>
+                        <li>external asynchronous events</li>
+                        <li class="distinctive">imperative flow</li>
+                        <li class="distinctive">others (interactions between threads, listeners registration order, ...)</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <p>Functional programming and composability</p>
+                </section>
+
+                <section>
+                    <h2>Plan (1) – Introduction</h2>
+
+                    <ul>
+                        <li>Introduction to Scala</li>
+                        <li>Abstraction in math</li>
+                        <li>Defining context in code</li>
+                        <li>Polymorphism and types of polymorphism</li>
+                        <li>Type classes. Examples</li>
+                        <li>Languages that support type classes</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Plan (2) – Effects and Reactiveness</h2>
+
+                    <ul>
+                        <li>What are effects?</li>
+                        <li>Monads and composition of sequential (dependant) computations over effects</li>
+                        <li>Applicatives and composition of independent effects</li>
+                        <li>Advantages for programming of reactive systems</li>
+                        <li>Denotational semantic with type classes</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Introduction to Scala</h2>
+
+                    <p class="fragment">Symbiosis between FP and OOP</p>
+                    <p class="fragment">SCAlable LAnguage</p>
+                </section>
+
+                <section>
+                    <h2>Definitions</h2>
+
+                    <pre><code class="scala">val n = 42
+var n = 42
+def n = 42
+lazy val n = 42
+
+val n: Int = 42</code></pre>
+
+                    <p class="fragment">Uniform Access Principle</p>
+                </section>
+
+                <section>
+                    <h2>Infix method call</h2>
+
+                    <pre><code>val a = 2
+val b = 4
+
+val c = a + b
+val d = a.+(b)</code></pre>
+                </section>
+
+                <section>
+                    <h2>Functions</h2>
+
+                    <pre><code class="scala">def double(n: Int): Int = n * 2
+
+def twice(f: Int => Int): Int => Int = n => f(f(n))
+// def twice(f: Int => Int) = f compose f
+
+twice(double)(2) // 8
+twice(twice(n => n + 1))(2) // 6
+twice(twice(_ + 1))(2) // 6</code></pre>
+                </section>
+
+                <section>
+                    <h2>Everything is an expression</h2>
+
+                    <pre><code class="scala">def fact(n: Int) =
+  if (n == 0) 1
+  else n * fact(n - 1)</code></pre>
+                </section>
+
+                <section>
+                    <h2>Everything is an expression</h2>
+
+                    <pre><code class="scala">def fact(n: Int) = {
+  println(s"Fact: $n")
+
+  if (n == 0) 1
+  else n * fact(n - 1)
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Multiple parameters lists</h2>
+
+                    <pre><code class="scala">def sum(a: Int, b: Int, c: Int) = a + b + c
+
+def sum(a: Int)(b: Int)(c: Int) = a + b + c
+
+sum(1, 2, 3) == sum(1)(2)(3)</code></pre>
+                </section>
+
+                <section>
+                    <pre><code class="scala">def map1[A, B](xs: List[A], f: A => B) = xs.map(f)
+
+val xs = List(1, 2, 3)
+
+// map1(xs, n => n.toString) – does not work
+map1(xs, (n: Int) => n.toString)</code></pre>
+
+                    <pre><code class="scala">def map2[A, B](xs: List[A])(f: A => B) = xs.map(f)
+
+map2(xs)(n => n.toString)
+map2(xs) { n => n.toString }
+
+map2(xs) { n =>
+   val double = n * 2
+   double.toString
+}</code></pre>
+                </section>
+
+                <section>
+                    <pre><code class="scala">class Rational(n: Int, d: Int = 1) extends Ordered[Rational] {
+  require(d != 0)
+
+  val (numer, denom) = {
+    val div = gcd(n.abs, d.abs)
+
+    (d.signum * n / div, d.abs / div)
+  }
+
+  @tailrec
+  private def gcd(a: Int, b: Int): Int =
+    if (b == 0) a else gcd(b, a % b)
+
+  def unary_- = new Rational(-numer, denom)
+  def inverse = new Rational(denom, numer)
+
+  def +(that: Rational) = new Rational(
+    numer * that.denom + that.numer * denom,
+    denom * that.denom
+  )
+  def -(that: Rational) = this + (-that)
+  def *(that: Rational) = new Rational(
+    numer * that.numer,
+    denom * that.denom
+  )
+  def /(that: Rational) = this * that.inverse
+
+  override def equals(other: Any): Boolean = other match {
+    case that: Rational =>
+      numer == that.numer && denom == that.denom
+    case _ => false
+  }
+  override def hashCode(): Int = (numer, denom).##
+
+  override def toString = s"$numer/$denom"
+
+  override def compare(that: Rational): Int = (this - that).numer
+}
+
+object Rational {
+  def apply(n: Int, d: Int = 1) = new Rational(n, d)
+
+  implicit def intToRational(n: Int) = new Rational(n)
+}
+
+Rational(3) + 4
+4 + Rational(3)</code></pre>
+                </section>
+
+                <section>
+                    <h2>Traits</h2>
+                    <p>(and multiple inheritance)</p>
+
+                    <pre><code class="scala">trait A {
+  def a: Int
+
+  def b = a.toString
+}
+
+trait B {
+  def c: Int
+
+  def mult(n: Int) = c * n
+}
+
+class C extends A with B {
+  val a = 42
+  def c = a
+}
+
+val instance = new C()
+val asValue = new A with B {
+  val a = 1
+  val c = 2
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Abstraction in math</h2>
+
+                    <p class="fragment">Examples: groups, fields, polynomials,
+                        <a href="https://en.wikipedia.org/wiki/Vector_space#Definition" style="color: white">vector spaces</a> and many more</p>
+                    <p class="fragment">Algebraic structures – sets with associated operations and axioms (laws)</p>
+                    <p class="fragment">algebraic structures ~ (abstract) data type</p>
+                </section>
+
+                <section>
+                    <h2>Group</h2>
+
+                    <p>Let G be a set with a binary operation „·“</p>
+                    <p>We call G a group if:</p>
+
+                    <ul class="fragment">
+                        <li>
+                            associativity – ∀ a, b, c ∈ G:
+                            <pre><code class="nohighlight">(a · b) · c = a · (b · c)</code></pre>
+                        </li>
+                        <li>
+                            identity element – ∃ e ∈ G, so that ∀ a ∈ G
+                            <pre><code class="nohighlight">e · a = a · e = a</code></pre>
+                        </li>
+                        <li>
+                            inverse element – ∀ a ∈ G, ∃ a' ∈ G, so that
+                            <pre><code class="nohighlight">a · a' = a' · a = e</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Monoid</h2>
+
+                    <p>Let M be a set with a binary operation „·“</p>
+                    <p>We call M a monoid if:</p>
+
+                    <ul>
+                        <li>
+                            associativity – ∀ a, b, c ∈ M:
+                            <pre><code class="nohighlight">(a · b) · c = a · (b · c)</code></pre>
+                        </li>
+                        <li>
+                            identity element – ∃ e ∈ M, so that ∀ a ∈ M
+                            <pre><code class="nohighlight">e · a = a · e = a</code></pre>
+                        </li>
+                        <li>
+                            <del>
+                                inverse element – ∀ a ∈ M, ∃ a' ∈ M, so that
+                                <pre><code class="nohighlight">a · a' = a' · a = e</code></pre>
+                            </del>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Implementation?</h2>
+
+                    <div class="fragment">
+                        <p>Task: write a function <code>sum</code> that’s reusable across types</p>
+
+                        <pre><code class="scala">def sum[A ???](xs: List[???]): A = ???</code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Implementation for Rational and for every monoid (demo)</h2>
+                </section>
+
+                <section>
+                    <h2>Context in programming code</h2>
+
+                    <p class="fragment">in math:<br />
+                        “Let F be a field (such that...)”<br />
+                        “Let's fix an orthogonal coordinate system”<br />
+                        ...
+                    </p>
+                </section>
+
+                <section>
+                    <dl>
+                        <dt>context</dt>
+                        <dd>1. The parts of a written or spoken statement that precede or follow a specific word or passage, usually influencing its meaning or effect;</dd>
+                        <dd class="fragment">2. The set of circumstances or facts that surround a particular event, statement, idea, etc.</dd>
+                        <dd class="fragment">3. “What comes with the text, but is not in the text.”</dd>
+                    </dl>
+                </section>
+
+                <section>
+                    <h2>Examples</h2>
+
+                    <p>Current:</p>
+                    <ul>
+                        <li>configuration</li>
+                        <li>transaction</li>
+                        <li>session</li>
+                        <li>ExecutionContext – a thread pool</li>
+                        <li>...</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Context in programming code</h2>
+
+                    <ul>
+                        <li class="fragment">import</li>
+                        <li class="fragment">subtype polymorphism</li>
+                        <li class="fragment">dependency injection</li>
+                        <li class="fragment">outer scope</li>
+                        <li class="fragment">parameters</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <p>Explicit context propagation</p>
+                </section>
+
+                <section>
+                    <p>Implicit context propagation</p>
+                </section>
+
+                <section>
+                    <p>Implicits in Scala</p>
+                </section>
+
+                <section>
+                    <h2>Type classes using implicits. Composability of this approach (demo)</h2>
+                </section>
+
+                <section>
+                    <p>Type classes define operations and axioms/properties that a given type must have.</p>
+
+                    <p class="fragment">To make a type an element of a type class we must provide a valid implementation of these operations.</p>
+                </section>
+
+                <section>
+                    <p>OOP classes model objects</p>
+                    <p class="fragment">(static members are not polymorphic)</p>
+                    <p class="fragment">Type classes model types</p>
+                </section>
+
+                <section>
+                    <h2>Axioms are important</h2>
+
+                    <div class="fragment">
+                        <p>((a · b) · c) · d – one by one, from left to right</p>
+                        <p>(a · b) · (c · d) – balanced and parallelizable</p>
+                    </div>
+
+                    <p class="fragment">Cen be programmatically checked</p>
+                </section>
+
+                <section>
+                    <h2>Polymorphism</h2>
+
+                    <p class="fragment">Using the same interface with different types</p>
+                </section>
+
+                <section>
+                    <h2>Parametric polymorphism (generics)</h2>
+
+                    <pre><code class="scala">def mapTwice[A](xs: List[A])(f: A => A): List[A] =
+  xs.map(f compose f)</code></pre>
+
+                    <pre><code class="scala">mapTwice(List(1, 2, 3)(_ * 2))
+mapTwice(List("ab", "c", "def")(str => str + str))</code></pre>
+                </section>
+
+                <section>
+                    <h2>Ad hoc polymorphism</h2>
+
+                    <p>The choice of a concrete implementation is based on the concrete type</p>
+                    <!--<p>Choosing the concrete implementation in accordance to the concrete type</p>-->
+                </section>
+
+                <section>
+                    <h2>Ad hoc polymorphism – overloading</h2>
+
+                    <pre><code class="scala">def stringify(n: Int) = n.toString
+def stringify(n: Rational) = s"$n.numer/$n.denom"
+
+stringify(1) // "1"
+stringify(Rational(1)) // "1/1"</code></pre>
+                </section>
+
+                <section>
+                    <h2>Ad hoc polymorphism – type classes</h2>
+
+                    <p>Example: the implementation of a <code>Monoid</code> is chosen in accordance to the type</p>
+
+                    <pre><code class="scala">sum(List(Rational(2), Rational(4))) // rationalMonoid
+sum(List(2, 4)) // intMonoid</code></pre>
+                </section>
+
+                <section>
+                    <h2>Subtype polymorphism</h2>
+
+                    <pre><code class="scala">trait Figure {
+  def area: Double
+  def circumference: Double
+}
+
+case class Circle(radius: Double) extends Figure {
+  def area: Double = Pi * radius * radius
+  def circumference: Double = 2 * Pi * radius
+}
+
+case class Square(side: Double) extends Figure {
+  def area: Double = side * side
+  def circumference: Double = 4 * side
+}
+
+val figure = getRandomFigure(10)
+figure.area // 100</code></pre>
+                    <p class="fragment">There is no information about the concrete type, but a concrete implementation is executed</p>
+                </section>
+
+                <section>
+                    <h2>Duck typing and structural subtyping</h2>
+
+                    <pre><code class="scala">type Closable = { def close(): Unit }
+
+def handle[A <: Closable, B](resource: A)(f: A => B): B =
+  try f(resource) finally resource.close()
+
+handle(new FileReader("file.txt"))(f => readLines(f))</code></pre>
+                </section>
+
+                <section>
+                    <h2>Binding</h2>
+
+                    <ul class="fragment">
+                        <li>Static (compile time) – parametric and ad-hoc polymorphism</li>
+                        <li>Late (runtime) – subtype polymorphism and duck typing</li>
+                    </ul>
+
+                    <p class="fragment">Late binding is fundamental for OOP</p>
+                </section>
+
+                <section>
+                    <blockquote>
+                        “I thought of objects being like biological cells and/or individual computers on a network, only able to communicate with messages...
+                        OOP to me means only messaging, local retention and protection and hiding of state-process, and extreme late-binding of all things.”
+                        ― Alan Kay
+                    </blockquote>
+
+                    <p class="fragment">This means that the actors from the actor model implement OOP, too, using explicit messaging for late binding</p>
+                </section>
+
+                <section>
+                    <h2>Reactroactive extension</h2>
+
+                    <p>extending a type without changing its code</p>
+                </section>
+
+                <section>
+                    <h2>Retroactive polymorphism</h2>
+
+                    <p>adding interface to a type without changing its code</p>
+
+                    <p class="fragment">Type classes support retroactive polymorphism</p>
+                </section>
+
+                <section>
+                    <h2>Other examples for type classes</h2>
+
+                    Ordering, JSON serialization, etc (demo)
+                </section>
+
+                <section>
+                    <h2>Scala libraries</h2>
+
+                    <ul>
+                        <li><a href="http://typelevel.org/cats/">Cats</a></li>
+                        <li><a href="https://github.com/non/spire">Spire</a> – mathematical abstractions. Uses Cats</li>
+                        <li><a href="https://github.com/scalaz/scalaz">Scalaz</a></li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Languages that support type classes</h2>
+
+                    <ul>
+                        <li>Haskell</li>
+                        <li>Scala</li>
+                        <li>Rust</li>
+                        <li>Idris</li>
+                        <li>...</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <p><a href="https://rustbyexample.com/trait.html">Rust example</a></p>
+                </section>
+
+                <section>
+                    <h2>Effects</h2>
+
+                    <ul>
+                        <li>Future[T] – asynchronous calculation</li>
+                        <li>Task[T] – lazy asynchronous calculation</li>
+                        <li>Stream[T], Observable[T] – stream</li>
+                        <li>Iteratee[T] – stream consumer</li>
+                        <li>DBAction[T] – database action/request</li>
+                        <li>Option[T] – optionality</li>
+                        <li>List[T] – multiplicity</li>
+                        <li>Try[T] – a value or a failure with a reason</li>
+                        <li>...</li>
+                    </ul>
+
+                    <p class="fragment">They are pretty common in reactive applications</p>
+                </section>
+
+                <section>
+                    <h2>Example – Option</h2>
+
+                    <pre><code class="scala">sealed abstract class Option[+A]
+case class Some[+A](x: A) extends Option[A]
+case object None extends Option[Nothing]</code></pre>
+                </section>
+
+                <section>
+                    <h2>Function composition</h2>
+
+                    <p>Let f: A => B and g: B => C be functions.</p>
+
+                    <p>h(x) = g(f(x)) is a function of type A => C</p>
+
+                    <p>h = g ∘ f</p>
+                </section>
+
+                <section>
+                    <h2>Function composition</h2>
+
+                    <ul>
+                        <li>
+                            associativity – let f: A => B, g: B => C and h: C => D. Then:
+                            <pre><code class="nohighlight">(h ∘ g) ∘ f = h ∘ (g ∘ f)</code></pre>
+                        </li>
+                        <li>
+                            identity element – let <code>identity = x => x</code>. Then ∀ f
+                            <pre><code class="nohighlight">identity ∘ f = f ∘ identity = f</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Function composition</h2>
+
+                    <p>h ∘ g ∘ f</p>
+                </section>
+
+                <section>
+                    <h2>Effective functions composition?</h2>
+
+                    <p>Let<br />f: A => Option[B],<br />g: B => Option[C],<br />h => Option[D].</p>
+
+                    <p>h ∘ g ∘ f?</p>
+                </section>
+
+                <section>
+                    <pre><code class="scala">
+def compose[A, B, C, D](f: A => Option[B],
+                        g: B => Option[C],
+                        h: C => Option[D]): A => Option[D] = a => {
+  val fOption = f(a)
+  if (fOption != None) {
+    val gOption = g(fOption.get)
+    if (gOption != None){
+      h(gOption.get)
+    } else {
+      None
+    }
+  } else {
+    None
+  }
+}</code></pre>
+                    <p class="fragment">Looks like callback hell code – and the reason is exactly the same</p>
+                    <p class="fragment">Let’s solve this problem in a reusable way</p>
+                </section>
+
+                <section>
+                    <p>Let’s put the ability to compose in an abstraction</p>
+
+                    <p class="fragment">(instead of „rediscovering“ it every time in our code)</p>
+                </section>
+
+                <section>
+                    <h2>Monad</h2>
+
+                    <pre><code class="scala">trait Monad[F[_]] {
+  def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C]
+  def unit[A](a: A): F[A]
+}</code></pre>
+
+                    <p class="fragment">F is a type constructor, but not a type</p>
+                    <p class="fragment">Example: List is a type constructor, List[Int] is a type</p>
+                </section>
+
+                <section>
+                    <ul>
+                        <li>
+                            associativity:
+                            <pre><code class="scala" style="width: 700px">compose(compose(f, g), h) == compose(f, compose(g, h))</code></pre>
+                        </li>
+                        <li>
+                            identity element
+                            <pre><code class="scala">compose(unit, f) == compose(f, unit) == f</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <p>Polymorphism around type constructors is called higher-kinded polymorphism</p>
+                </section>
+
+                <section>
+                    <pre><code class="scala">val optionMonad = new Monad[Option] {
+  def compose[A, B, C](f: A => Option[B], g: B => Option[C]) =
+    (a: A) => f(a) match {
+      case Some(b) => g(b)
+      case _ => None
+    }
+  def unit[A](a: A): Option[A] = Some(a)
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Alternative definition using flatMap</h2>
+
+                    <pre><code class="scala">trait Monad[F[_]] {
+  def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
+  def unit[A](a: A): F[A]
+
+  def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] =
+    a => flatMap(f(a))(g)
+}</code></pre>
+
+                    <div class="fragment">
+                        flatMap can be expressed using compose:
+                        <pre><code class="scala">compose((_: Unit) => fa, f)(())</code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <pre><code class="scala">
+def compose[A, B, C, D](f: A => Option[B],
+                        g: B => Option[C],
+                        h: C => Option[D]): A => Option[D] = a => {
+  f(a).flatMap(b =>
+    g(b).flatMap(c =>
+      h(c)))
+}</code></pre>
+                </section>
+
+                <section>
+                    <h2>Scala syntax sugar for monads</h2>
+                    <pre><code class="scala">for {
+  b <- f(a)
+  c <- g(b)
+  d <- h(c)
+} yield d</code></pre>
+                </section>
+
+                <section>
+                    <h2>We can use every previous result</h2>
+
+                    <pre><code class="scala">for {
+  b <- f(a)
+  c <- g(b * 2)
+  d <- h(b + c)
+} yield a * b * d</code></pre>
+
+                    <div class="fragment">
+                      <p>is converted to:</p>
+
+                      <pre><code class="scala">f(a).flatMap(b =>
+  g(b * 2).flatMap(c =>
+    h(b + c).map(d => a * b * d))
+}</code></pre>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Functors are a generalization of monads:</h2>
+
+                    <pre><code class="scala">trait Functor[F[_]]  {
+  def map[A, B](fa: F[A])(f: A => B): F[B]
+}</code></pre>
+
+                    <pre class="fragment"><code class="scala">trait Monad[F[_]] extends Functor[F] {
+  def flatMap[A, B](fa: F[A])(f: A => F[B]): F[B]
+  def unit[A](a: A): F[A]
+
+  def map[A, B](fa: F[A])(f: A => B): F[B] =
+    flatMap(fa)(a => unit(f(a))
+}</code></pre>
+                </section>
+
+                <section>
+                    <p>Demo (monads)</p>
+                </section>
+
+                <section>
+                    <h2>Monads with zero</h2>
+
+                    <p>mzero: F[A] is a zero if:</p>
+
+                    <ul>
+                        <li>
+                            ∀f: A → F[B]:
+                            <pre><code class="scala">flatMap(mzero)(f) == mzero</code></pre>
+                        </li>
+                        <li>
+                            ∀m ∈ F[A]:
+                            <pre><code class="scala" style="width: 500px">flatMap(mzero)(m)(x => mzero) == mzero</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <pre><code class="scala">trait MonadWithZero[F[_]] extends Monad[F] {
+  def mzero[A]: F[A]
+  def filter[A](m: F[A])(f: A => Boolean): F[A] =
+    flatMap(m) { x => if (f(x)) unit(x) else mzero }
+}</code></pre>
+                </section>
+
+                <section>
+                    <pre><code class="scala">val res1 = for {
+  a <- Success(2)
+  b <- Failure(new IllegalArgumentException)
+  c <- Success(a + b)
+  d <- Failure(new IndexOutOfBoundsException)
+} yield a + b + c + d
+
+// res1: scala.util.Try[String] =
+//   Failure(java.lang.IllegalArgumentException)
+
+val res2 = for {
+  a <- res1
+  b <- Success(4)
+} yield a + b
+
+// res2: scala.util.Try[String] =
+//   Failure(java.lang.IllegalArgumentException)</code></pre>
+
+                    <p class="fragment">Helps achieving resiliency</p>
+                </section>
+
+                <section>
+                    <pre><code class="scala">val res = for {
+  e1 <- List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+  if e1 % 2 != 0
+  e2 <- List(4, 5, 6, 7, 8, 9, 10)
+  if e2 < e1
+} yield (e1, e2)
+
+// res: List[(Int, Int)] = List((5,4), (7,4), (7,5), (7,6), (9,4),
+//   (9,5), (9,6), (9,7), (9,8))</code></pre>
+                </section>
+
+                <section>
+                    <h2>Example – HTTP</h2>
+                    <pre><code class="scala">val httpRequest: Iteratee[Array[Byte], HttpRequest] = for {
+  (method, path) <- requestLineIteratee
+  headers <- Enumeratee.asciiLines.transform(headersIteratee)
+  body <- bodyIteratee(headers)
+} yield HttpRequest(method, path, headers, body)</code></pre>
+
+                    <pre><code class="scala">val httpResponse: Iteratee[Array[Byte], HttpResponse] = for {
+  statusCode <- statusLineIteratee
+  headers <- Enumeratee.asciiLines.transform(headersIteratee)
+  body <- bodyIteratee(headers)
+} yield HttpResponse(statusCode, headers, body)</code></pre>
+                </section>
+
+                <section>
+                    <h2>Applicatives</h2>
+
+                    <p>a functor that allows us to combine multiple independent effective values in a product (a tuple)</p>
+                </section>
+
+                <section>
+                    <pre><code class="scala">trait Applicative[F[_]] extends Functor[F] {
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)]
+  def unit[A](a: A): F[A]
+
+  def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
+    map(product(fa, fb)) { case (a, b) => f(a, b)}
+}</code></pre>
+                </section>
+
+                <section>
+                    <pre><code class="scala">trait Applicative[F[_]] extends Functor[F] {
+  def product[A, B](fa: F[A], fb: F[B]): F[(A, B)]
+  def unit[A](a: A): F[A]
+
+  def map2[A, B, C](fa: F[A], fb: F[B])(f: (A, B) => C): F[C] =
+    map(product(fa, fb)) { case (a, b) => f(a, b)}
+
+  // Generalization of productN and mapN:
+  def sequence[A](ml: List[F[A]]): F[List[A]] = traverse(ml)(m => m)
+  def traverse[A, B](xs: List[A])(f: A => F[B]): F[List[B]] = {
+    xs.foldRight(unit(List[B]())) { (next, acc) =>
+      map2(f(next), acc)(_ :: _)
+    }
+  }
+}</code></pre>
+
+                    <pre class="fragment"><code class="scala">val futureResults: Future[List[Int]] = Applicative[Future].sequence(
+  List(
+    retrieveA(),
+    retrieveB(),
+    retrieveC()
+  ))</code></pre>
+                </section>
+
+                <section>
+                    <h2>Parallel validation</h2>
+
+                    <pre><code class="scala">sealed abstract class Validated[+E, +A]
+
+object Validated {
+  final case class Valid[+A](a: A) extends Validated[Nothing, A]
+  final case class Invalid[+E](e: E) extends Validated[E, Nothing]
+}
+
+type ValidatedNel[+E, +A] = Validated[NonEmptyList[E], A]
+</code></pre>
+                </section>
+
+                <section>
+                    <p>Parallel in the sense of independent and parallelizable</p>
+                </section>
+
+                <section>
+                    <h2>Parallel validation<br />(demo using Cats)</h2>
+                </section>
+
+                <section>
+                    <h2>Composability and parallelization</h2>
+
+                    <pre><code class="scala">for {
+  user <- getUser(id)
+  (profile, orders) <- // applicative in a monadic composition
+    (getOrders(user.email), getProfile(user)).sequence
+  products <- getMatchingProducts(profile, orders)
+} yield products</code></pre>
+
+                    <p class="fragment"><code>getOrders</code> and <code>getProfile</code> will be executed in parallel</p>
+                </section>
+
+                <section>
+                    <p>Applicatives – the effective values are independent</p>
+
+                    <p>Monads – the previous calculations can influence on what effective calculations should be performed next</p>
+                </section>
+
+                <section>
+                    <h2>Book</h2>
+
+                    <p><a href="https://www.manning.com/books/functional-programming-in-scala"><img src="images/functional-programming-in-scala.jpg"></a></p>
+                </section>
+
+                <section>
+                    <h2>Semantics of Functional Reactive Programming</h2>
+
+                    <p>(<a href="http://conal.net/papers/push-pull-frp/">by Conal Elliott</a>)</p>
+                </section>
+
+                <section>
+                    <ul>
+                        <li>event stream:
+                            <pre><code class="scala">type E[A] = Set[(T, A)]</code></pre>
+                        </li>
+                        <li>behaviour:
+                            <pre><code class="scala">type B[A] = T => A</code></pre>
+                        </li>
+                        <li>T – time data type, e.g. T = ℝ
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>1. Behaviour</h2>
+
+                    <ul>
+                        <li>Functor – map is applied only on the value A</li>
+                        <li>
+                            Applicative:
+                            <pre><code>def product(a: B[A], b: B[B]) = t => (a(t), b(t))</code></pre>
+                            <pre><code>def unit(a: A) = t => a // a constant the whole tiem</code></pre>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>2. Event</h2>
+
+                    <ul>
+                        <li>Monoid with merge – merges two sets in accordance to time. Take the first one of two simultaneous events</li>
+                        <li>Functor – map is applied only on the value A</li>
+                        <li>Monad</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>3. Link between events and behaviours (reactivity)</h2>
+
+                    <pre><code class="scala">def switcher[A](b0: B[A], e: E[B[A]]): B[A] =
+  (t: T) => (b0 :: e.filter({ case (time, _) => time < t})).last</code></pre>
+                    <p>on every event the behaviour is swapped with a new one</p>
+
+                    <div class="fragment">
+                        <pre><code class="scala">def stepper[A](a: A, e: E[A]): B[A] =
+  switcher(Monad.unit(e), e.map(Monad.unit(_)))</code></pre>
+                        <p>starts with an initial value which is swapped on every event</p>
+                    </div>
+                </section>
+
+                <section>
+                    <p>This way we can mathematically talk about FRP and verify its composability</p>
+                </section>
+
+                <section>
+                    <h2>Conclusion</h2>
+
+                    <p>The type classes</p>
+
+                    <ul>
+                        <li class="fragment">model types</li>
+                        <li class="fragment">offer a common interface and axioms for a whole set of types</li>
+                        <li class="fragment">i.e. a common language, which we can use to handle and talk about these types</li>
+                        <li class="fragment">allow ad hoc polymorphism</li>
+                        <li class="fragment">usually compose and emphasis declarative expression</li>
+                        <li class="fragment">don’t require changes of type’s code and can be context-dependent</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Questions?</h2>
+                </section>
+            </div>
+        </div>
+
+        <script src="lib/js/head.min.js"></script>
+        <script src="js/reveal.js"></script>
+
+        <script>
+            // More info about config & dependencies:
+            // - https://github.com/hakimel/reveal.js#configuration
+            // - https://github.com/hakimel/reveal.js#dependencies
+            Reveal.initialize({
+                history: true,
+                transition: "fade",
+                dependencies: [
+                    { src: 'plugin/markdown/marked.js' },
+                    { src: 'plugin/markdown/markdown.js' },
+                    { src: 'plugin/notes/notes.js', async: true },
+                    { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+                ]
+            });
+        </script>
+    </body>
+</html>
