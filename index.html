@@ -26,7 +26,7 @@
         <div class="reveal">
             <div class="slides">
                 <section>
-                    <h2>Type Classses</h2>
+                    <h2>Type Classes</h2>
                 </section>
 
                 <section>
@@ -187,7 +187,7 @@ val xs = List(1, 2, 3)
 // map1(xs, n => n.toString) – не работи
 map1(xs, (n: Int) => n.toString)</code></pre>
 
-                    <pre><code>def map2[A, B](xs: List[A])(f: A => B) = xs.map(f)
+                    <pre><code class="scala">def map2[A, B](xs: List[A])(f: A => B) = xs.map(f)
 
 map2(xs)(n => n.toString)
 map2(xs) { n => n.toString }

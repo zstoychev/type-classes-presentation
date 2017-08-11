@@ -60,7 +60,7 @@ object JsonSerializable {
 
   implicit def listSerializable[A : JsonSerializable] = new JsonSerializable[List[A]] {
     def toJson(a: List[A]): JsonValue = JsonArray(
-      a.map(person => JsonSerializable.toJson(person))
+      a.map(value => JsonSerializable.toJson(value))
     )
   }
 
