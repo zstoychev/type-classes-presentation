@@ -10,7 +10,7 @@ case class Date(year: Int, month: Int, day: Int) {
 }
 
 object Date {
-  def validate(year: Int, month: Int, day: Int): Option[Date] = try {
+  def validated(year: Int, month: Int, day: Int): Option[Date] = try {
     Some(Date(year, month, day))
   } catch {
     case _: IllegalArgumentException => None
@@ -37,7 +37,13 @@ object ValidationTest extends App {
       case _: NumberFormatException => invalidNel(s"$value is not an integer")
     }
 
-  def date(year: Int, month: Int, day: Int) = Date.validate(year, month, day) match {
+  def nonNegativeInteger(value: String) =
+    integer(value).andThen { i =>
+      if (i >= 0) valid(i)
+      else invalidNel(s"$i is negative")
+    }
+
+  def date(year: Int, month: Int, day: Int) = Date.validated(year, month, day) match {
     case Some(date) => valid(date)
     case None => invalidNel(s"$year/$month/$day is not a valid date")
   }
@@ -53,7 +59,7 @@ object ValidationTest extends App {
     (
       name(input.name) |@|
       email(input.email) |@|
-      integer(input.age) |@|
+      nonNegativeInteger(input.age) |@|
       birthday
     ).map(Person.apply)
   }

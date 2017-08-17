@@ -570,7 +570,7 @@ handle(new FileReader("file.txt"))(f => readLines(f))</code></pre>
                 <section>
                     <h2>Example – Option</h2>
 
-                    <pre><code class="scala">sealed abstract class Option[+A]
+                    <pre><code class="scala">sealed trait Option[+A]
 case class Some[+A](x: A) extends Option[A]
 case object None extends Option[Nothing]</code></pre>
                 </section>
@@ -651,6 +651,7 @@ def compose[A, B, C, D](f: A => Option[B],
 
                     <p class="fragment">F is a type constructor, but not a type</p>
                     <p class="fragment">Example: List is a type constructor, List[Int] is a type</p>
+                    <p class="fragment">Polymorphism around type constructors is called higher-kinded polymorphism</p>
                 </section>
 
                 <section>
@@ -667,10 +668,6 @@ def compose[A, B, C, D](f: A => Option[B],
                 </section>
 
                 <section>
-                    <p>Polymorphism around type constructors is called higher-kinded polymorphism</p>
-                </section>
-
-                <section>
                     <pre><code class="scala">val optionMonad = new Monad[Option] {
   def compose[A, B, C](f: A => Option[B], g: B => Option[C]) =
     (a: A) => f(a) match {
@@ -679,6 +676,8 @@ def compose[A, B, C, D](f: A => Option[B],
     }
   def unit[A](a: A): Option[A] = Some(a)
 }</code></pre>
+
+                    <pre class="fragment"><code class="scala">optionMonad.compose(optionMonad.compose(f, g), h)</code></pre>
                 </section>
 
                 <section>
@@ -875,12 +874,10 @@ val res2 = for {
                 <section>
                     <h2>Parallel validation</h2>
 
-                    <pre><code class="scala">sealed abstract class Validated[+E, +A]
+                    <pre><code class="scala">sealed trait Validated[+E, +A]
 
-object Validated {
-  final case class Valid[+A](a: A) extends Validated[Nothing, A]
-  final case class Invalid[+E](e: E) extends Validated[E, Nothing]
-}
+case class Valid[+A](a: A) extends Validated[Nothing, A]
+case class Invalid[+E](e: E) extends Validated[E, Nothing]
 
 type ValidatedNel[+E, +A] = Validated[NonEmptyList[E], A]
 </code></pre>
@@ -939,25 +936,28 @@ type ValidatedNel[+E, +A] = Validated[NonEmptyList[E], A]
                 </section>
 
                 <section>
-                    <h2>1. Behaviour</h2>
+                    <h2>1. Behaviour (<code>T => A</code>)</h2>
 
                     <ul>
-                        <li>Functor – map is applied only on the value A</li>
+                        <li>Functor – map is applied on the resulting value A</li>
                         <li>
                             Applicative:
-                            <pre><code>def product(a: B[A], b: B[B]) = t => (a(t), b(t))</code></pre>
-                            <pre><code>def unit(a: A) = t => a // a constant the whole tiem</code></pre>
+                            <pre><code class="scala">def product(a: B[A], b: B[B]) = t => (a(t), b(t))</code></pre>
+                            <pre><code class="scala">def unit(a: A) = t => a // a constant the whole time</code></pre>
                         </li>
                     </ul>
                 </section>
 
                 <section>
-                    <h2>2. Event</h2>
+                    <h2>2. Event (<code>Set[(T, A)])</code></h2>
 
                     <ul>
                         <li>Monoid with merge – merges two sets in accordance to time. Take the first one of two simultaneous events</li>
-                        <li>Functor – map is applied only on the value A</li>
-                        <li>Monad</li>
+                        <li>Functor – map is applied on the value A</li>
+                        <li>Monad:
+                            <pre><code class="scala">def unit(a: A) = Set(−∞, a)</code></pre>
+                            <p>flatMap</p>
+                        </li>
                     </ul>
                 </section>
 

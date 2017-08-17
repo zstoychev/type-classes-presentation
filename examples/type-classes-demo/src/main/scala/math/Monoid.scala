@@ -1,6 +1,6 @@
 package math
 
-trait Monoid[M] {
+trait Monoid[M] extends Semigroup[M] {
   def op(a: M, b: M): M
   def identity: M
 }
